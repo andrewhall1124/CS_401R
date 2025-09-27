@@ -1,28 +1,28 @@
 import numpy as np
 from rich import print
+
+np.random.seed(42)
+
 # Parameters
-N = 9
+N = 8
 l = 1.0
 g = 9.8
 m = 0.3
 
 # Q(state weight matrix) and R(control weight matrix)
 Q = np.array([[1, 0], [0, 0]])
-R = np.array([[1, 0], [0, 2]])
+R = np.array([[3]])
 
 # State transition matrices
-A = np.array([[1, 2], [-4, 1]])
-B = np.array([[1, 2], [3, 2]])
+A = np.array([[0, 1], [g/l, 0]])
+B = np.array([[0], [1/(m * l ** 2)]])
 
 # X initial state
-x0 = np.array([5, 10])
+x0 = np.array([1, 2])
 
 P = [None] * (N + 1)
 P[N] = Q
 K = [None] * N
-
-def V(x, u):
-    return x.T @ Q @ x + u.T @ R @ u
 
 # Compute P(cost to go matrix) and K(feedback gain matrix)
 for k in range(N - 1, -1, -1):
@@ -30,12 +30,12 @@ for k in range(N - 1, -1, -1):
     P[k] = Q + K[k].T @ R @ K[k] + (A - B @ K[k]).T @ P[k + 1] @ (A - B @ K[k])
 
 x = np.zeros((2, N + 1))
-u = np.zeros((2, N))  # u should be 2D since B is 2x2
+u = np.zeros((1, N))
 x[:, 0] = x0
 
 # Compute u(control inputs) and x(state)
 for k in range(N):
-    u[:, k] = -K[k] @ x[:, k]
+    u[:, k] = np.random.normal(0, 1, 1)  # Sample from normal distribution
     x[:, k+1] = A @ x[:, k] + B @ u[:, k]
 
 g = np.zeros(N + 1)
