@@ -63,5 +63,8 @@ for k in range(N + 1):
 for k in range(N + 1):
     print(f"g_{k} = {g[k]:.2f}")
 
+for k in range(N):
+    print(f"u_{k} = {u[:, k].round(2)}")
+
 print(f"Total Cost = {J:.2f}")
 

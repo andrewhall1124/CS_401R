@@ -57,7 +57,7 @@ for k in range(N + 1):
     print(f"P_{k} =\n {P[k].round(2)}")
 
 for k in range(N + 1):
-    print(f"V_{k} = {V[k]:.2f}")
+    print(f"V_{k} = {V[k]:,.2f}")
 
 for k in range(N + 1):
     print(f"g_{k} = {g[k]:.2f}")

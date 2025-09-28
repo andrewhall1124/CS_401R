@@ -1,8 +1,5 @@
 import numpy as np
 from rich import print
-
-np.random.seed(42)
-
 # Parameters
 N = 8
 l = 1.0
@@ -35,7 +32,7 @@ x[:, 0] = x0
 
 # Compute u(control inputs) and x(state)
 for k in range(N):
-    u[:, k] = np.random.normal(0, 1, 1)  # Sample from normal distribution
+    u[:, k] = -1
     x[:, k+1] = A @ x[:, k] + B @ u[:, k]
 
 g = np.zeros(N + 1)
@@ -66,5 +63,5 @@ for k in range(N + 1):
 for k in range(N + 1):
     print(f"g_{k} = {g[k]:.2f}")
 
-print(f"Total Cost = {J:.2f}")
+print(f"Total Cost = {J:,.2f}")
 
