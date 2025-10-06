@@ -10,6 +10,7 @@ P = np.array([
 
 n = P.shape[0]
 
+print("Closed Form Method:")
 # pi @ P = pi
 # (P - I)'pi = 0
 # Add constraint: sum(pi) = 1
@@ -20,5 +21,13 @@ b = np.zeros(n)
 b[-1] = 1  # sum(pi) = 1
 pi = np.linalg.solve(A, b)
 
-print("Steady State")
 print(pi.round(2))
+
+print("Iterative Method:")
+v = np.array([0, 0, 0, 1])
+
+for _ in range(200):
+    v = v @ P
+v = v / sum(v)
+
+print(v.round(2))
