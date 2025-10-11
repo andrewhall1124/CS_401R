@@ -109,26 +109,17 @@ def transition_likelihood(x_curr: tuple, action: str, x_prev: tuple) -> float:
     if not is_valid(right_pos):
         right_pos = x_prev
 
-    # Check which position x_curr matches
-    if x_curr == intended_pos:
-        return 0.8
-    elif x_curr == left_pos and x_curr != intended_pos:
-        return 0.1
-    elif x_curr == right_pos and x_curr != intended_pos:
-        return 0.1
-    elif x_curr == x_prev:
-        # If agent stays in place, it could be due to multiple reasons
-        # We need to count how many directions lead to staying
-        prob = 0.0
-        if intended_pos == x_prev:
-            prob += 0.8
-        if left_pos == x_prev:
-            prob += 0.1
-        if right_pos == x_prev:
-            prob += 0.1
-        return prob
+    # Calculate probability by checking which movements lead to x_curr
+    prob = 0.0
 
-    return 0.0
+    if x_curr == intended_pos:
+        prob += 0.8
+    if x_curr == left_pos:
+        prob += 0.1
+    if x_curr == right_pos:
+        prob += 0.1
+
+    return prob
 
 
 def calculate_new_belief(y_obs: tuple, action: str, prev_belief: list[list[float]]) -> list[list[float]]:
@@ -143,7 +134,6 @@ def calculate_new_belief(y_obs: tuple, action: str, prev_belief: list[list[float
         for col in range(n):
             if grid[row][col] is None:
                 continue
-
             x_curr = (row, col)
             belief_sum = 0.0
 
@@ -157,7 +147,6 @@ def calculate_new_belief(y_obs: tuple, action: str, prev_belief: list[list[float
 
                     # Calculate numerator: P(y_k|x) * P(x|u_{k-1}, x')
                     numerator = observation_likelihood(y_obs, x_curr) * transition_likelihood(x_curr, action, x_prev)
-
                     # Calculate denominator: sum over all x_tilde
                     denominator = 0.0
                     for tilde_row in range(m):
@@ -171,29 +160,36 @@ def calculate_new_belief(y_obs: tuple, action: str, prev_belief: list[list[float
                     if denominator > 0:
                         belief_sum += (numerator / denominator) * prev_belief[prev_row][prev_col]
 
-            new_belief[row][col] = belief_sum
+                    new_belief[row][col] = belief_sum
 
     return new_belief
 
 
 # Test the functions
 print("Testing observation likelihood for y_k = c (0, 2):")
+print(f"P(c|h) = {observation_likelihood(y_k, (0, 1))}")
 print(f"P(c|c) = {observation_likelihood(y_k, y_k)}")
 print(f"P(c|d) = {observation_likelihood(y_k, (0, 3))}")
 print(f"P(c|h) = {observation_likelihood(y_k, (1, 2))}")
 print()
 
 print("Testing transition likelihood with action = 'up' from x' = (1, 2):")
-prev_state = (1, 2)  # position h
-print(f"P(c|up, h) = {transition_likelihood(y_k, action, prev_state)}")
-print(f"P(d|up, h) = {transition_likelihood((0, 3), action, prev_state)}")
-print(f"P(h|up, h) = {transition_likelihood(prev_state, action, prev_state)}")
+print(f"P(c|up, c) = {transition_likelihood(y_k, action, (0, 2))}")
+print(f"P(c|up, d) = {transition_likelihood(y_k, action, (0, 3))}")
+print(f"P(c|up, h) = {transition_likelihood(y_k, action, (1, 2))}")
+print(f"P(c|up, q) = {transition_likelihood(y_k, action, (1, 3))}")
 print()
 
 print("Calculating new belief after observing y_k = c and taking action = 'up':")
 new_belief = calculate_new_belief(y_k, action, belief_grid)
 print("\nNew belief grid:")
 for row in new_belief:
-    print([f"{x:.4f}" if x > 0 else "0" for x in row])
+    print([f"{x:.3f}" if x > 0 else "0" for x in row])
 print()
-print(f"New belief at position c (0, 2): {new_belief[0][2]:.6f}")
+print(f"New belief at position c (0, 2): {new_belief[0][2]:.4f}")
+
+
+print("Testing transition likelihood")
+y_k = (0, 2)
+action = "up"
+x_tilde = ()
