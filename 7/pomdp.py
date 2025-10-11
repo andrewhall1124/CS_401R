@@ -31,34 +31,42 @@ def get_neighbors(row: int, col: int) -> List[Tuple[int, int]]:
 def observation_likelihood(state: Tuple[int, int], observed: Tuple[int, int]) -> float:
     """
     Probability of observing 'observed' position given true state is 'state'
-    - If state == observed: probability = 0.6
+    - If state == observed: probability = 0.6 + 0.1 * (number of wall neighbors)
     - If state is neighbor of observed: probability = 0.1
     - Otherwise: probability = 0
     """
     if state == observed:
-        return 0.6
+        # Count how many directions from observed hit walls or boundaries
+        all_directions: List[Tuple[int, int]] = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        wall_count: int = 0
+        for dr, dc in all_directions:
+            r, c = observed[0] + dr, observed[1] + dc
+            # Check if it's out of bounds or a wall (None)
+            if not (0 <= r < len(grid) and 0 <= c < len(grid[0]) and grid[r][c] is not None):
+                wall_count += 1
+        return 0.6 + (0.1 * wall_count)
     elif state in get_neighbors(observed[0], observed[1]):
         return 0.1
     else:
         return 0.0
 
 # Apply Bayes filter update: belief_new ∝ P(y_k | x_k) * belief_old
-updated_belief = []
+updated_belief: List[List[Optional[float]]] = []
 for row in range(len(belief_grid)):
-    updated_row = []
+    updated_row: List[Optional[float]] = []
     for col in range(len(belief_grid[row])):
         if belief_grid[row][col] is None:
             updated_row.append(None)
         else:
-            likelihood = observation_likelihood((row, col), observed_position)
+            likelihood: float = observation_likelihood((row, col), observed_position)
             updated_row.append(belief_grid[row][col] * likelihood)
     updated_belief.append(updated_row)
 
 # Normalize so beliefs sum to 1
-total = sum(val for row in updated_belief for val in row if val is not None)
-normalized_belief = []
+total: float = sum(val for row in updated_belief for val in row if val is not None)
+normalized_belief: List[List[Optional[float]]] = []
 for row in updated_belief:
-    normalized_row = []
+    normalized_row: List[Optional[float]] = []
     for val in row:
         if val is None:
             normalized_row.append(None)
