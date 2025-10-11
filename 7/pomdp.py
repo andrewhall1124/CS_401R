@@ -1,26 +1,25 @@
+from typing import List, Tuple, Optional
 
-observation_error = .1
-
-grid = [
+grid: List[List[Optional[int]]] = [
     [0, 0, 0, -1],
     [0, None, 0, 100],
     [0, 0, 0, 0]
 ]
 
-belief_grid = [
+belief_grid: List[List[Optional[float]]] = [
     [0, 0, .2, .3],
     [0, None, .1, .4],
     [0, 0, 0, 0]
 ]
 
 # Update belief when observing y_k = c (position [0, 2])
-observed_position = (0, 2)  # row 0, col 2 corresponds to 'c'
+observed_position: Tuple[int, int] = (0, 2)  # row 0, col 2 corresponds to 'c'
 
 # Get neighbors of position c
-def get_neighbors(row, col):
+def get_neighbors(row: int, col: int) -> List[Tuple[int, int]]:
     """Returns list of valid neighbor positions (up, down, left, right)"""
-    neighbors = []
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # up, down, left, right
+    neighbors: List[Tuple[int, int]] = []
+    directions: List[Tuple[int, int]] = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # up, down, left, right
     for dr, dc in directions:
         r, c = row + dr, col + dc
         if 0 <= r < len(grid) and 0 <= c < len(grid[0]) and grid[r][c] is not None:
@@ -29,7 +28,7 @@ def get_neighbors(row, col):
 
 # Calculate observation likelihood for each state
 # P(y_k = c | x_k = state)
-def observation_likelihood(state, observed):
+def observation_likelihood(state: Tuple[int, int], observed: Tuple[int, int]) -> float:
     """
     Probability of observing 'observed' position given true state is 'state'
     - If state == observed: probability = 0.6
