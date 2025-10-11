@@ -160,7 +160,7 @@ def calculate_new_belief(y_obs: tuple, action: str, prev_belief: list[list[float
                     if denominator > 0:
                         belief_sum += (numerator / denominator) * prev_belief[prev_row][prev_col]
 
-                    new_belief[row][col] = belief_sum
+            new_belief[row][col] = belief_sum
 
     return new_belief
 
@@ -187,9 +187,3 @@ for row in new_belief:
     print([f"{x:.3f}" if x > 0 else "0" for x in row])
 print()
 print(f"New belief at position c (0, 2): {new_belief[0][2]:.4f}")
-
-
-print("Testing transition likelihood")
-y_k = (0, 2)
-action = "up"
-x_tilde = ()
