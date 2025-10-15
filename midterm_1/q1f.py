@@ -6,7 +6,7 @@ def calculate_sensor_noise(y: str, x: str, graph: dict[str, list[str]]) -> float
         return .5
     else:
         # p(outgoing neighbors) = .25
-        if x in graph[y]:
+        if y in graph[x]:
             return .25
         else:
             return 0
@@ -41,39 +41,10 @@ def calculate_belief(x: str, y: str, graph: dict[str, list[str]], policy: dict[s
 
         print(f"y={y}   x_prev={x_prev}    s={sensor_noise}    t={transition_noise}")
 
-        numerator = sensor_noise * transition_noise
-
+        numerator = sensor_noise * transition_noise * beliefs[x_prev]
+        
+        total_belief += numerator
         print(f"numerator = {numerator}")
-
-        denominator = 0
-        for x_tilde in graph.keys():
-            sensor_noise_tilde = calculate_sensor_noise(
-                y=y, 
-                x=x_tilde, 
-                graph=graph
-            )
-
-            transition_noise_tilde = calculate_transition_noise(
-                x=x_tilde,
-                policy=policy,
-                x_prev=x_prev,
-                graph=graph
-            )
-
-            print(f"    x_tilde={x_tilde}   s={sensor_noise_tilde:.4f}  t={transition_noise_tilde:.4f}")
-
-            denominator += sensor_noise_tilde * transition_noise_tilde
-
-        print(f"denominator = {denominator}")
-
-        # Normalize
-        normalized = numerator / denominator
-        
-        contribution = normalized * beliefs[x_prev]
-        
-        total_belief += contribution
-    
-    print(f"Belief ={total_belief:.4f}")
     return total_belief
 
 # Parameters
@@ -103,7 +74,16 @@ observation = 'C'
 new_beliefs = {}
 for x in beliefs.keys():
     new_beliefs[x] = calculate_belief(x, y=observation, graph=graph, policy=policy, beliefs=beliefs)
+
+    for key, belief in new_beliefs.items():
+        belief_sum = sum(new_beliefs.values())
+        if belief_sum == 0:
+            new_beliefs[key] = 0
+        else:
+            new_beliefs[key] /= sum(new_beliefs.values())
+
     new_beliefs[x] = round(new_beliefs[x], 2)
+    print(f"x={x}   belief={new_beliefs[x]}")
 
 print("\nNew Beliefs")
 print(new_beliefs)
