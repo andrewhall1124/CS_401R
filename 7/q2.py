@@ -21,6 +21,9 @@ def nu_2(n: float) -> float:
 def nu_3(n: float) -> float:
     return 1 / ((n + 3) ** 2)
 
+def nu_4(n: float) -> float:
+    return n / (n + 1) ** 2
+
 
 def run(x: Callable, nu: Callable, N: int) -> list[float]:
     mu = [None] * N
@@ -37,10 +40,12 @@ x = list(range(N))
 mu_1 = run(x_2, nu_1, N)
 mu_2 = run(x_2, nu_2, N)
 mu_3 = run(x_2, nu_3, N)
+mu_4 = run(x_2, nu_4, N)
 
 plt.plot(x, mu_1, label="nu_1")
 plt.plot(x, mu_2, label="nu_2")
 plt.plot(x, mu_3, label="nu_3")
+plt.plot(x, mu_4, label="nu_4")
 
 plt.title("Comparison of nu")
 

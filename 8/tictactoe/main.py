@@ -14,7 +14,7 @@ game = TicTacToe()
 # uncomment this when you're ready to train and play against the RL player
 p2 = OptPlayer('X')
 p1 = RLPlayer('O')
-p1.train(eta_type = 'standard', N = 500, gamma = .1, epsilon = .001, opponent_policy = 'random', max_iterations = 100)
+p1.train(eta_type = 'standard', N=500, gamma=.1, epsilon=.001, opponent_policy='random', max_iterations=100)
 
 def evaluate_performance(player, opponent, num_games=100):
         """Evaluate performance against an opponent"""
