@@ -123,14 +123,20 @@ class RLPlayer(Player):
 
         # Policy iteration loop
         for iteration in range(max_iterations):
+            # Store previous values
+            V_old = self.V.copy()
+
             # Evaluate current policy using Monte Carlo
             self.policy_evaluation(N)
 
             # Improve policy greedily
-            policy_stable = self._improve_policy()
+            self._improve_policy()
 
-            if policy_stable:
-                print(f"Policy converged at iteration {iteration}!")
+            # Compute infinity norm of value function change
+            max_diff = max(abs(self.V[state] - V_old[state]) for state in self.states)
+
+            if max_diff <= epsilon:
+                print(f"Policy converged at iteration {iteration}! (max_diff: {max_diff:.6f})")
                 return
 
         print(f"Max iterations ({max_iterations}) reached without convergence.")
@@ -196,9 +202,7 @@ class RLPlayer(Player):
 
         return visited_states, reward
 
-    def _improve_policy(self) -> bool:
-        policy_stable = True
-
+    def _improve_policy(self) -> None:
         for state in self.states:
             game = TicTacToe()
             game.board = list(state)
@@ -208,16 +212,10 @@ class RLPlayer(Player):
                 continue
 
             # Find action with highest expected value
-            old_action = self.policy.get(state)
             best_action, best_value = self._get_best_action(game, available_moves)
 
             # Update policy
             self.policy[state] = best_action
-
-            if old_action != best_action:
-                policy_stable = False
-
-        return policy_stable
 
     def _get_best_action(self, game: TicTacToe, available_moves: list):
         best_action = None

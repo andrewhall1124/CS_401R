@@ -1,5 +1,6 @@
 from Player import HumanPlayer, OptPlayer, RandomPlayer, RLPlayer
 from TicTacToe import TicTacToe
+from rich import print
 
 game = TicTacToe()
 
