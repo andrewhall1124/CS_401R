@@ -95,6 +95,8 @@ class RLPlayer(Player):
         self.policy = {}  # Policy mapping state to action
         self.states = []
         self.gamma = 0
+        self.opponent_policy_type = "random"  # Will be set during training
+        self.opponent_player = None  # Will store OptPlayer if needed
 
     ############################################################################
     # this is the function you will implement policy iteration with Monte-Carlo
@@ -112,11 +114,17 @@ class RLPlayer(Player):
     ):
         print("Training RLPlayer!")
         self.gamma = gamma
+        self.opponent_policy_type = opponent_policy
 
         # Set random seed for reproducibility
         if seed is not None:
             random.seed(seed)
             np.random.seed(seed)
+
+        # Initialize opponent player if using optimal policy
+        if opponent_policy == "optimal":
+            print("Initializing optimal opponent...")
+            self.opponent_player = OptPlayer(self.opponent_letter)
 
         # Initialize all possible states and random policy
         self._initialize_policy()
@@ -185,8 +193,8 @@ class RLPlayer(Player):
                 move = self.policy.get(state)
                 visited_states.append(state)
             else:
-                # Opponent plays randomly
-                move = random.choice(game.empty_squares())
+                # Opponent move based on opponent_policy_type
+                move = self._get_opponent_move(game)
 
             game.make_move(move, current_player)
             current_player = "O" if current_player == "X" else "X"
@@ -201,6 +209,15 @@ class RLPlayer(Player):
             reward = 0.0
 
         return visited_states, reward
+
+    def _get_opponent_move(self, game: TicTacToe):
+        """Get opponent's move based on the opponent policy type."""
+        if self.opponent_policy_type == "random":
+            return random.choice(game.empty_squares())
+        elif self.opponent_policy_type == "optimal":
+            return self.opponent_player.get_move(game)
+        else:
+            raise ValueError(f"Unknown opponent policy type: {self.opponent_policy_type}")
 
     def _improve_policy(self) -> None:
         for state in self.states:
