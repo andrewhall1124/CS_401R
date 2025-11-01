@@ -12,7 +12,7 @@ from players import (
 
 
 env = GridWorld()
-num_episodes = 500
+num_episodes = 1000
 
 # # SARSA Agent
 # sarsa_agent = SARSAAgent(env)

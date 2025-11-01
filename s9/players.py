@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+from tqdm import tqdm
 
 def _eta_for(eta, state, t, N_visits):
     if isinstance(eta, (float, int)):
@@ -69,19 +70,19 @@ class TDLambdaAgent:
         if np.random.rand() < self.epsilon:
             return np.random.choice(actions)
         else:
-            # Select action leading to state with minimum V(s')
-            min_value = float('inf')
+            # Select action leading to state with maximum V(s')
+            max_value = float('-inf')
             best_actions = []
             for action in actions:
                 next_state = self.simulated_step(state, action)
                 value = self.v_values[next_state[0], next_state[1]]
                 # handle infinite values, preventing NaNs
                 if not np.isfinite(value):
-                    value = float('inf')
-                if value < min_value:
-                    min_value = value
+                    value = float('-inf')
+                if value > max_value:
+                    max_value = value
                     best_actions = [action]
-                elif value == min_value:
+                elif value == max_value:
                     best_actions.append(action)
             # if no best actions, choose a random action
             if len(best_actions) == 0:
@@ -122,28 +123,42 @@ class TDLambdaAgent:
     #############################################
     # IMPLEMENT ALGORITHM IN THE TRAIN FUNCTION #
     #############################################
-    def train(self, num_episodes):
-        for _ in range(num_episodes):
+    def train(self, num_episodes, epsilon=1e-5, max_steps=10000):
+        for episode in tqdm(range(num_episodes), desc="Training TDLambdaAgent"):
             episode_reward = 0
+            v_old = self.v_values.copy()
 
             state = self.env.reset()
             z = np.zeros([self.env.height, self.env.width])
 
-            while state != self.env.goal_state:
+            step_count = 0
+            while True:
                 action = self.choose_action(state)
-                next_state = self.simulated_step(state=state, action=action)
-                reward = -1
+                next_state, reward, done = self.env.step(action=action)
                 episode_reward += reward
 
                 z[state] += 1
 
-                td_error = reward + self.gamma * self.v_values[next_state] - self.v_values[state]
+                if done:
+                    td_error = reward - self.v_values[state]
+                else:
+                    td_error = reward + self.gamma * self.v_values[next_state] - self.v_values[state]
 
-                self.v_values += self.eta * z[state] * td_error
+                self.v_values += self.eta * td_error * z
+                z = self.gamma * self.lam * z
 
                 state = next_state
+                step_count += 1
+
+                if done or step_count >= max_steps:
+                    break
 
             self.rewards_per_episode.append(episode_reward)
+
+            max_diff = np.max(np.abs(self.v_values - v_old))
+            if max_diff < epsilon:
+                print(f"TD(λ) converged in {episode + 1} episodes")
+                break
 
         return self.v_values, self.rewards_per_episode
 
@@ -300,15 +315,15 @@ def print_policy_v(v_values, env):
             elif state in env.cliff:
                 policy[i, j] = 'C'
             else:
-                min_value = float('inf')
+                max_value = float('-inf')
                 best_actions = []
                 for action in actions:
                     next_state = td_lambda_agent.simulated_step(state, action)
                     value = v_values[next_state[0], next_state[1]]
-                    if value < min_value:
-                        min_value = value
+                    if value > max_value:
+                        max_value = value
                         best_actions = [action]
-                    elif value == min_value:
+                    elif value == max_value:
                         best_actions.append(action)
                 best_action = np.random.choice(best_actions)
                 policy[i, j] = actions_symbols[best_action]
