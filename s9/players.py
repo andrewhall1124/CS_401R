@@ -30,7 +30,32 @@ class SARSAAgent:
     # IMPLEMENT ALGORITHM IN THE TRAIN FUNCTION #
     #############################################
     def train(self, num_episodes):
-        pass
+        for episode in tqdm(range(num_episodes), desc="Training SARSAAgent"):
+            state = self.env.reset()
+            action = self.choose_action(state)
+            episode_reward = 0
+
+            while True:
+                next_state, reward, done = self.env.step(action)
+                episode_reward += reward
+
+                next_action = self.choose_action(next_state)
+
+                current_q = self.q_values[state[0], state[1], action]
+                next_q = self.q_values[next_state[0], next_state[1], next_action]
+                td_target = reward + self.gamma * next_q * (1 - done)
+                td_error = td_target - current_q
+
+                self.q_values[state[0], state[1], action] += self.eta * td_error
+
+                state = next_state
+                action = next_action
+
+                if done:
+                    break
+
+            self.rewards_per_episode.append(episode_reward)
+
         return self.q_values, self.rewards_per_episode
 
 class QLearningAgent:
@@ -52,7 +77,30 @@ class QLearningAgent:
     # IMPLEMENT ALGORITHM IN THE TRAIN FUNCTION #
     #############################################
     def train(self, num_episodes):
-        pass
+        for episode in tqdm(range(num_episodes), desc="Training QLearningAgent"):
+            state = self.env.reset()
+            episode_reward = 0
+
+            while True:
+                action = self.choose_action(state)
+
+                next_state, reward, done = self.env.step(action)
+                episode_reward += reward
+
+                current_q = self.q_values[state[0], state[1], action]
+                max_next_q = np.max(self.q_values[next_state[0], next_state[1]])
+                td_target = reward + self.gamma * max_next_q * (1 - done)
+                td_error = td_target - current_q
+
+                self.q_values[state[0], state[1], action] += self.eta * td_error
+
+                state = next_state
+
+                if done:
+                    break
+
+            self.rewards_per_episode.append(episode_reward)
+
         return self.q_values, self.rewards_per_episode
 
 class TDLambdaAgent:
